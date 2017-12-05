@@ -51,7 +51,11 @@ public class DijkstraCarcassSearchImpl implements DijkstraCarcassSearch {
 				i = tempNodeMinimum;
 			}
 		} while (tempNodeMinimum > -1);
-		return new DijkstraCarcassSearchResult(carcass, Vector.zero(carcass.rows()), parent);
+		Vector finalDistances = Vector.zero(carcass.rows());
+		for(int j = 0; j < adjacencyMatrix.columns(); j++) {
+			finalDistances.set(j, distances[j].distance);
+		}
+		return new DijkstraCarcassSearchResult(carcass, finalDistances, parent);
 	}
 
 	private NodeLabels[] buildInitialDistances(int root, Matrix adjacencyMatrix) {
