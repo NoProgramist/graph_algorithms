@@ -15,7 +15,7 @@ public class YenPathesTest {
 	@Test
 	public void runTests() {
 		YensPathesSearch yensPathesSearch = new YensPathesSearchImpl();
-		List<Path> result = yensPathesSearch.findKthShortestPath(0, 4, 5, Matrix.from2DArray(GraphSamples.yenGraph));
+		List<Path> result = yensPathesSearch.findKthShortestPath(0, 4, 3, Matrix.from2DArray(GraphSamples.yenGraph));
 		result.forEach(path -> System.out.println(path));
 	}
 }
