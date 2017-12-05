@@ -33,6 +33,13 @@ public class GraphSamples {
 			{ 27, n, 0, n, 23}, 
 			{ 23, n, n, 0, 27 }, 
 			{ n, 25, 23, 27, n } };
+	
+	public static final double[][] yenGraph2 = { 
+			{ 0, 6, 13, 18, 35 }, 
+			{ 6, 0, 14, 34, 17 }, 
+			{ 13, 14, 0, 22, 15}, 
+			{ 18, 34, 22, 0, 34 }, 
+			{ 35, 17, 15, 34, n } };
 
 	public static final Matrix[] graphs = { Matrix.from2DArray(graph1), Matrix.from2DArray(graph2), Matrix.from2DArray(graph3), Matrix.from2DArray(graph4),
 			Matrix.from2DArray(graph5) };

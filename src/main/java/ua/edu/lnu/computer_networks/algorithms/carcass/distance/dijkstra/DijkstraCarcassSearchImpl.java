@@ -36,7 +36,10 @@ public class DijkstraCarcassSearchImpl implements DijkstraCarcassSearch {
 			for (int j = 0; j < adjacencyMatrix.columns(); ++j) {
 				if (nodeAdjacency.get(j) != graphUtils.InfinityWeight) {
 					if (!distances[j].isFinal) {
-						distances[j].distance = Math.min(distances[j].distance, distances[i].distance + nodeAdjacency.get(j));
+						if (distances[j].distance > distances[i].distance + nodeAdjacency.get(j)) {
+							parent.put(j, i);
+							distances[j].distance = distances[i].distance + nodeAdjacency.get(j);
+						}
 						if (distances[j].distance < tempDistanceMinimum) {
 							tempNodeMinimum = j;
 							tempDistanceMinimum = distances[j].distance;
@@ -45,7 +48,6 @@ public class DijkstraCarcassSearchImpl implements DijkstraCarcassSearch {
 				}
 			}
 			if (tempNodeMinimum > -1) {
-				parent.put(tempNodeMinimum, i);
 				carcass.set(i, tempNodeMinimum, adjacencyMatrix.get(i, tempNodeMinimum));
 				distances[tempNodeMinimum].isFinal = true;
 				i = tempNodeMinimum;

@@ -18,4 +18,11 @@ public class YenPathesTest {
 		List<Path> result = yensPathesSearch.findKthShortestPath(0, 4, 3, Matrix.from2DArray(GraphSamples.yenGraph));
 		result.forEach(path -> System.out.println(path));
 	}
+	
+	@Test
+	public void runTests2() {
+		YensPathesSearch yensPathesSearch = new YensPathesSearchImpl();
+		List<Path> result = yensPathesSearch.findKthShortestPath(0, 4, 7, Matrix.from2DArray(GraphSamples.yenGraph2));
+		result.forEach(path -> System.out.println(path));
+	}
 }
