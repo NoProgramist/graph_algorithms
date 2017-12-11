@@ -9,10 +9,6 @@ public class Path {
 	private List<Integer> vertexes;
 	
 	private double length;
-	
-	int from;
-	
-	int to;
 
 	public Path(List<Integer> vertexes, double length) {
 		super();
