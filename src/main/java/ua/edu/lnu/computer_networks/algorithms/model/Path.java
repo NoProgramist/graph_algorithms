@@ -10,6 +10,10 @@ public class Path {
 	
 	private double length;
 
+	public Path() {
+		super();
+	}
+
 	public Path(List<Integer> vertexes, double length) {
 		super();
 		this.vertexes = vertexes;
@@ -31,11 +35,6 @@ public class Path {
 	public void setLength(double length) {
 		this.length = length;
 	}
-	
-	@Override
-	public String toString() {
-		return "{" + StringUtils.join(vertexes.toArray(), ", ") + "} - " + length;
-	}
 
 	public int getFrom() {
 		return vertexes.get(0);
@@ -43,5 +42,10 @@ public class Path {
 
 	public int getTo() {
 		return vertexes.get(vertexes.size() - 1);
+	}
+
+	@Override
+	public String toString() {
+		return "{" + StringUtils.join(vertexes.toArray(), ", ") + "} - " + length;
 	}
 }
