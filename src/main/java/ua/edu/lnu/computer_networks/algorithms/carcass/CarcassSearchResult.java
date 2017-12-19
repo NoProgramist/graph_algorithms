@@ -1,21 +1,22 @@
 package ua.edu.lnu.computer_networks.algorithms.carcass;
 
-import org.la4j.Matrix;
+import ua.edu.lnu.computer_networks.algorithms.model.SimpleGraph;
 
 public class CarcassSearchResult {
 
-	private Matrix adjacencyMatrix;
+	private SimpleGraph graph;
 
-	public CarcassSearchResult(Matrix adjacencyMatrix) {
+	public CarcassSearchResult(SimpleGraph graph) {
 		super();
-		this.adjacencyMatrix = adjacencyMatrix;
+		this.graph = graph;
 	}
 
-	public Matrix getAdjacencyMatrix() {
-		return adjacencyMatrix;
+	public SimpleGraph getGraph() {
+		return graph;
 	}
 
-	public void setAdjacencyMatrix(Matrix adjacencyMatrix) {
-		this.adjacencyMatrix = adjacencyMatrix;
+	public void setGraph(SimpleGraph graph) {
+		this.graph = graph;
 	}
+
 }

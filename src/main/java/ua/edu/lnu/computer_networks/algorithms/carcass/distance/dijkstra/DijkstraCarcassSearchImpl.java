@@ -10,68 +10,76 @@ import org.la4j.Matrix;
 import org.la4j.Vector;
 
 import ua.edu.lnu.computer_networks.algorithms.model.Path;
-import ua.edu.lnu.computer_networks.utils.GraphUtils;
+import ua.edu.lnu.computer_networks.algorithms.model.SimpleGraph;
+import ua.edu.lnu.computer_networks.algorithms.model.SimpleGraphUtils;
 
 public class DijkstraCarcassSearchImpl implements DijkstraCarcassSearch {
 
-	protected final GraphUtils graphUtils;
+	protected final SimpleGraphUtils graphUtils;
 
-	public DijkstraCarcassSearchImpl(GraphUtils graphUtils) {
+	public DijkstraCarcassSearchImpl(SimpleGraphUtils graphUtils) {
 		super();
 		this.graphUtils = graphUtils;
 	}
 
 	@Override
+	public DijkstraCarcassSearchResult findCarcass(int root, SimpleGraph graph) {
+		return this.findCarcass(root, graphUtils.buildAdjacencyMatrix(graph));
+	}
+
+	@Override
 	public DijkstraCarcassSearchResult findCarcass(int root, Matrix adjacencyMatrix) {
-		NodeLabels[] distances = buildInitialDistances(root, adjacencyMatrix);
-		Matrix carcass = Matrix.constant(adjacencyMatrix.rows(), adjacencyMatrix.columns(), graphUtils.InfinityWeight);
+		VertexLabels[] distances = buildInitialDistances(root, adjacencyMatrix);
+		Matrix carcass = Matrix.constant(adjacencyMatrix.rows(), adjacencyMatrix.columns(), graphUtils.getMaxWeight());
 		Map<Integer, Integer> parent = new HashMap<>();
 		int i = root;
 		int tempNodeMinimum;
-		
+
 		do {
 			tempNodeMinimum = -1;
 			Vector nodeAdjacency = adjacencyMatrix.getRow(i);
-			double tempDistanceMinimum = graphUtils.InfinityWeight;
+			double tempDistanceMinimum = graphUtils.getMaxWeight();
 			for (int j = 0; j < adjacencyMatrix.columns(); ++j) {
-				if (nodeAdjacency.get(j) != graphUtils.InfinityWeight) {
+				if (nodeAdjacency.get(j) != graphUtils.getMaxWeight()) {
 					if (!distances[j].isFinal) {
 						if (distances[j].distance > distances[i].distance + nodeAdjacency.get(j)) {
 							parent.put(j, i);
 							distances[j].distance = distances[i].distance + nodeAdjacency.get(j);
 						}
-						if (distances[j].distance < tempDistanceMinimum) {
-							tempNodeMinimum = j;
-							tempDistanceMinimum = distances[j].distance;
-						}
 					}
 				}
 			}
+			for (int j = 0; j < distances.length; ++j) {
+				if (!distances[j].isFinal && distances[j].distance < tempDistanceMinimum) {
+					tempNodeMinimum = j;
+					tempDistanceMinimum = distances[j].distance;
+				}
+			}
 			if (tempNodeMinimum > -1) {
-				carcass.set(i, tempNodeMinimum, adjacencyMatrix.get(i, tempNodeMinimum));
+				carcass.set(parent.get(tempNodeMinimum), tempNodeMinimum, adjacencyMatrix.get(parent.get(tempNodeMinimum), tempNodeMinimum));
 				distances[tempNodeMinimum].isFinal = true;
 				i = tempNodeMinimum;
 			}
 		} while (tempNodeMinimum > -1);
 		Vector finalDistances = Vector.zero(carcass.rows());
-		for(int j = 0; j < adjacencyMatrix.columns(); j++) {
+		for (int j = 0; j < adjacencyMatrix.columns(); j++) {
 			finalDistances.set(j, distances[j].distance);
 		}
-		return new DijkstraCarcassSearchResult(carcass, finalDistances, parent);
+		return new DijkstraCarcassSearchResult(graphUtils.buildGraph(carcass), finalDistances, parent);
 	}
 
-	private NodeLabels[] buildInitialDistances(int root, Matrix adjacencyMatrix) {
-		NodeLabels[] distances = new NodeLabels[adjacencyMatrix.rows()];
+	private VertexLabels[] buildInitialDistances(int root, Matrix adjacencyMatrix) {
+		VertexLabels[] distances = new VertexLabels[adjacencyMatrix.rows()];
 		for (int i = 0; i < adjacencyMatrix.rows(); ++i) {
-			distances[i] = new NodeLabels();
+			distances[i] = new VertexLabels();
 		}
 		distances[root].distance = 0;
 		distances[root].isFinal = true;
 		return distances;
 	}
 
-	protected class NodeLabels {
-		double distance = graphUtils.InfinityWeight;
+	protected class VertexLabels {
+		double distance = graphUtils.getMaxWeight();
 		boolean isFinal = false;
 	}
 

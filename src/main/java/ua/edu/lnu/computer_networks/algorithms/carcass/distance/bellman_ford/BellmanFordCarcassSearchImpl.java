@@ -1,66 +1,112 @@
 package ua.edu.lnu.computer_networks.algorithms.carcass.distance.bellman_ford;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
+
 import org.la4j.Matrix;
 import org.la4j.Vector;
-import org.la4j.iterator.MatrixIterator;
 
-import ua.edu.lnu.computer_networks.utils.GraphUtils;
+import ua.edu.lnu.computer_networks.algorithms.model.Edge;
+import ua.edu.lnu.computer_networks.algorithms.model.SimpleGraph;
+import ua.edu.lnu.computer_networks.algorithms.model.SimpleGraphUtils;
 
 public class BellmanFordCarcassSearchImpl implements BellmanFordCarcassSearch {
 
-	protected final GraphUtils graphUtils;
+	protected final SimpleGraphUtils graphUtils;
 
-	public BellmanFordCarcassSearchImpl(GraphUtils graphUtils) {
+	public BellmanFordCarcassSearchImpl(SimpleGraphUtils graphUtils) {
 		super();
 		this.graphUtils = graphUtils;
 	}
 
 	@Override
-	public BellmanFordCarcassSearchResult findCarcass(int root, Matrix adjacencyMatrix) {
-		Vector distances = Vector.constant(adjacencyMatrix.rows(), graphUtils.InfinityWeight);
-		distances.set(root, 0);
-		Matrix pathes = Matrix.constant(adjacencyMatrix.rows() + 1, adjacencyMatrix.columns(), graphUtils.InfinityWeight);
-		for (int i = 0; i < adjacencyMatrix.rows(); ++i) {
-			distances = doSubStep(adjacencyMatrix.iterator(), i, pathes, distances);
+	public BellmanFordCarcassSearchResult findCarcass(int root, SimpleGraph graph) {
+		int vertexesCount = graph.getVertexes().size();
+		List<VertexLabel> labels = IntStream.range(0, vertexesCount).mapToObj(id -> {
+			return new VertexLabel();
+		}).collect(Collectors.toList());
+		labels.get(root).distance = 0;
+		for (int i = 0; i < vertexesCount; ++i) {
+			doSubStep(graph.getEdges(), i, labels);
 		}
-		boolean hasNegativeCycles = checkIfHasNegativeCycles(adjacencyMatrix.iterator(), adjacencyMatrix.rows(), pathes, distances);
-		return new BellmanFordCarcassSearchResult(buildCarcassMatrix(adjacencyMatrix, pathes), distances, hasNegativeCycles);
+		Vector distances = Vector.fromArray(labels.stream().sequential().mapToDouble(label -> {
+			return label.distance;
+		}).toArray());
+		return new BellmanFordCarcassSearchResult(buildCarcassGraph(labels, graph), distances, checkIfHasNegativeCycles(graph.getEdges(), vertexesCount, labels));
 	}
 
-	protected Vector doSubStep(MatrixIterator iterator, int i, Matrix pathes, Vector distances) {
-		Vector tmpDistances = distances.copy();
-		do {
-			iterator.next();
-			int u = iterator.rowIndex();
-			int v = iterator.columnIndex();
-			double weight = iterator.get();
-			if (weight != graphUtils.InfinityWeight) {
-				double newWeight = distances.get(u) + weight;
-				if (distances.get(v) > newWeight) {
-					tmpDistances.set(v, newWeight);
-					pathes.set(i, v, u);
-				}
-			}
-		} while (iterator.hasNext());
-		return tmpDistances;
-	}
-
-	protected boolean checkIfHasNegativeCycles(MatrixIterator iterator, int rows, Matrix pathes, Vector distances) {
-		Vector newDistances = doSubStep(iterator, rows, pathes, distances);
-		return newDistances.subtract(distances).euclideanNorm() > 0;
-	}
-
-	private Matrix buildCarcassMatrix(Matrix adjacencyMatrix, Matrix pathes) {
-		Matrix carcass = Matrix.constant(pathes.rows(), pathes.columns(), this.graphUtils.InfinityWeight);
-		for (int j = 0; j < pathes.columns(); ++j) {
-			for (int i = pathes.rows() - 1; i > -1; --i) {
-				double to = pathes.get(i, j);
-				if (to != this.graphUtils.InfinityWeight) {
-					carcass.set(j, (int) to, adjacencyMatrix.get(j, (int) to));
-				}
+	private SimpleGraph buildCarcassGraph(List<VertexLabel> labels, SimpleGraph graph) {
+		SimpleGraph carcass = new SimpleGraph();
+		carcass.setVertexes(new ArrayList<>(graph.getVertexes()));
+		List<Edge> edges = new ArrayList<>(graph.getVertexes().size());
+		for (int i = 0; i < labels.size(); ++i) {
+			if (labels.get(i).parent > -1) {
+				edges.add(new Edge(labels.get(i).parent, i, true, false, labels.get(i).weight));
 			}
 		}
+		carcass.setEdges(edges);
 		return carcass;
+	}
+
+	@Override
+	public BellmanFordCarcassSearchResult findCarcass(int root, Matrix adjacencyMatrix) {
+		return this.findCarcass(root, graphUtils.buildGraph(adjacencyMatrix));
+	}
+
+	protected void doSubStep(List<? extends Edge> edges, int i, List<VertexLabel> labels) {
+		for (Edge edge : edges) {
+			if (edge.isLeft()) {
+				updateWeight(edge.getSource(), edge.getTarget(), edge.getWeight(), labels);
+			}
+			if (edge.isRight()) {
+				updateWeight(edge.getTarget(), edge.getSource(), edge.getWeight(), labels);
+			}
+		}
+	}
+
+	protected void updateWeight(int source, int target, double weight, List<VertexLabel> labels) {
+		double newDistance = labels.get(source).distance + weight;
+		VertexLabel targetLabel = labels.get(target);
+		if (targetLabel.distance > newDistance) {
+			targetLabel.distance = newDistance;
+			targetLabel.weight = weight;
+			targetLabel.parent = source;
+		}
+	}
+
+	protected boolean checkIfHasNegativeCycles(List<? extends Edge> edges, int vertexesCount, List<VertexLabel> labels) {
+		Vector oldDistances = Vector.fromArray(labels.stream().sequential().mapToDouble(label -> {
+			return label.distance;
+		}).toArray());
+		doSubStep(edges, vertexesCount, labels);
+		Vector newDistances = Vector.fromArray(labels.stream().mapToDouble(label -> {
+			return label.distance;
+		}).toArray());
+		return newDistances.subtract(oldDistances).euclideanNorm() > 0;
+	}
+
+	protected class VertexLabel implements Cloneable {
+		double distance = graphUtils.getMaxWeight();
+		double weight = graphUtils.getMaxWeight();
+		int parent = -1;
+
+		VertexLabel() {
+			super();
+		}
+
+		VertexLabel(double distance, double weight, int parent) {
+			super();
+			this.distance = distance;
+			this.weight = weight;
+			this.parent = parent;
+		}
+
+		@Override
+		public VertexLabel clone() {
+			return new VertexLabel(distance, weight, parent);
+		}
 	}
 
 }
