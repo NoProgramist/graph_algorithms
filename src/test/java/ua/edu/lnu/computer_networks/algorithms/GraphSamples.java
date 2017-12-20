@@ -40,6 +40,20 @@ public class GraphSamples {
 			{ 13, 14, 0, 22, 15}, 
 			{ 18, 34, 22, 0, 34 }, 
 			{ 35, 17, 15, 34, n } };
+	
+	public static final double[][] addRemove = { 
+			{ 0, 3, 3, n, n }, 
+			{ 3, 0, n, 7, 5 }, 
+			{ 3, n, 0, n, n}, 
+			{ n, 7, n, 0, 4 }, 
+			{ n, 5, n, 4, n } };
+	
+	public static final double[][] update = { 
+			{ 0, 3, 3, 13, n }, 
+			{ 3, 0, n, 7, 5 }, 
+			{ 3, n, 0, n, n}, 
+			{ 13, 7, n, 0, 4 }, 
+			{ n, 5, n, 4, n } };
 
 	public static final Matrix[] graphs = { Matrix.from2DArray(graph1), Matrix.from2DArray(graph2), Matrix.from2DArray(graph3), Matrix.from2DArray(graph4),
 			Matrix.from2DArray(graph5) };
